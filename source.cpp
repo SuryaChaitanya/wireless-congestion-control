@@ -235,7 +235,7 @@ int main()
 			usleep(500000);
 			cout<<"\nNode("<<node->ip_val<<") Buffer:: "<<node->buffer<<" Data:: "<<node->data<<" Energy::"<<node->energy;
 			
-			/*if(i>8)
+			if(i>8)
 			{
 				if(node->ip_val==2)
 					node->buffer+=500;
@@ -266,7 +266,7 @@ int main()
 						node->buffer=0;
 				}
 			}
-			*/
+			
 
 			cout<<"---> "<<i<<endl;
 			
