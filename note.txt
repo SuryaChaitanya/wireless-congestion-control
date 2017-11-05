@@ -1,0 +1,15 @@
+need to change the structure type
+
+no next and previous 
+
+need to implement the shortest path first algorithm and start routing with the index of the struct rather than next and previous.
+create successor and predecessor routing table.
+
+keep note of the transaction by using the transaction id..ie---cbr 1 and cbr2 need to be distinguished.
+
+find the energy lost in packet transfer, lost, dropped, received....need to change energy accordingly.
+
+i can store the routing path in a arrray and run the array of numbers and changee the value of the struct directly. Thus no dependencies of next or previous command and i can change the value without moving linearly.
+
+thus to reroute it is very simple. change the array(replace the node number with the node that has energy and buffer space....)
+:
