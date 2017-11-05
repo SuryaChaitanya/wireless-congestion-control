@@ -2,6 +2,7 @@
 #include<iostream>
 #include<stdio.h>
 #include<bits/stdc++.h>
+#include<vector>
 #include<unistd.h>
 #define N 10
 #define buffer_size 10000			//buffer_capacity for each node
@@ -169,7 +170,72 @@ struct node* rerouting(struct node* head)
 	return sub;
 }
 
+void transferdata(struct node *node)
+{
+	//for transfering the data of the previous node to next node
+	struct node *p=node;
+	vector<int> data;
+	while(p!=NULL)
+	{
+		data.push_back(p->data);
+		p=p->next;
+	}
+	p=node;
+	int k=0;
+	p=p->next;
+	while(p!=NULL)
+	{
+		p->data=data[k++];
+		//data.pushback(p->data);
 
+	}
+}
+struct node* looping(struct node *n)
+{
+	struct node *node=n;
+	int data;
+	while(node!=NULL)
+		{
+
+			node->energy=node->energy-e_packet_transfer;
+
+			update(node);
+			usleep(500000);
+			cout<<"\nNode("<<node->ip_val<<") Buffer:: "<<node->buffer<<" Data:: "<<node->data<<" Energy::"<<node->energy;
+			
+			if(node->data>link_bw)
+				{
+					node->buffer=node->buffer+(node->data-link_bw);
+					if(node->buffer>(0.75*buffer_size))
+					{
+						cout<<"\n Congestion might occur...";
+						cout<<"\n \n rerouting......";
+						usleep(1000000);
+						cout<<"\nrerouting......";
+						
+						node=rerouting(node);	
+					}
+
+				}
+				else
+				{
+					int diff=link_bw-node->data;
+					if(node->buffer>0)
+					{
+						if(node->buffer>diff)
+							node->buffer-=diff;
+						else
+						node->buffer=0;
+					}
+				}
+				transferdata(node);
+				update(node);
+				node=node->next;
+				
+		}
+		return n;
+
+}
 int main()
 {
 	initial_();
@@ -195,12 +261,14 @@ int main()
 	int i=0;
 	
 	//create the routing path
+
+	//Changed buffer size to zero--meaning the buffer is empty
 	struct node* head1=NULL;
-	append(&head1, 0,750,79.226, 10000);
-	append(&head1, 1, 0, 83.3808, 10000);
-	append(&head1, 2, 0, 87.5356, 10000);
-	append(&head1, 3, 0, 91.6904, 10000);
-	append(&head1, 4, 0, 95.8452, 10000);
+	append(&head1, 0,750,79.226, 0);
+	append(&head1, 1, 0, 83.3808, 0);
+	append(&head1, 2, 0, 87.5356, 0);
+	append(&head1, 3, 0, 91.6904, 0);
+	append(&head1, 4, 0, 95.8452, 0);
 	
 
 	cout<<"\nRouting table:: \n";
@@ -221,57 +289,9 @@ int main()
 		cout<<"\n Time::"<<i<<endl;
 
 		struct node *node=head1;
-		int flag=0;
-		//cout<<"\n value";
-		while(node!=NULL)
-		{
-
-			node->energy=node->energy-e_packet_transfer;
-			update(node);
-			usleep(500000);
-			cout<<"\nNode("<<node->ip_val<<") Buffer:: "<<node->buffer<<" Data:: "<<node->data<<" Energy::"<<node->energy;
-			
-			if(i>8)
-			{
-				if(node->ip_val==2)
-					node->buffer+=500;
-			}	
-			
-			if(i>8){
-				if(node->data>link_bw)
-				{
-					//int buffer=node->buffer;
-					node->buffer+=node->data-link_bw;
-
-					if(node->buffer>(0.75*buffer_size))
-					{
-						cout<<"\n Congestion might occur...";
-						cout<<"\n \n rerouting......";
-						usleep(1000000);
-						cout<<"\nrerouting......";
-						flag=1;
-						node=rerouting(node);	
-					}
-				}
-				else
-				{
-					int diff=link_bw-node->data;
-					if(node->buffer>diff)
-						node->buffer-=diff;
-					else
-						node->buffer=0;
-				}
-			}
-			
-
-			cout<<"---> "<<i<<endl;
-			
-			node->next->data=node->data;
-			
-			
-			update(node);
-				node=node->next;
-		}
+		
+		head1=looping(node);
+		
 		cout<<"\n outside while loop";
 	}
 
