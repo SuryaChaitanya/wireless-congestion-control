@@ -21,10 +21,12 @@ struct Node
 	int data;					//data at present transmitted
 	float energy;				//energy remaining
 	int buffer;					//buffer filled
+	int buffer_remain;
 	//int reduced_rate;			//msg from intermediate node to reduce the rate of flow to control congestion when rerouting is not possible
 	int next,prev;
 	
 }node[10];
+
 
 void create_nodes(int n)
 {	
@@ -32,12 +34,13 @@ void create_nodes(int n)
 	cout<<endl<<"Entering node buffer capacity, energy, ip_value::\n";
 	for(int i=0;i<n;i++)
 	{
-		node[i]->ip_val=i;
-		node[i]->data=0;
-		node[i]->energy=100;
-		node[i]->buffer=5000;
-		node[i]->next=-1;
-		node[i]->prev=-1;
+		node[i].ip_val=i;
+		node[i].data=0;
+		node[i].energy=100;
+		node[i].buffer=5000;
+		node[i].buffer_remain=0;
+		node[i].next=-1;
+		node[i].prev=-1;
 	}
 
 }
@@ -45,24 +48,14 @@ void create_routing_table()
 {
 	int a,b;
 	do{
-		cout<<"Enter the neighbouring nodes ::"
+		cout<<"Enter the neighbouring nodes ::";
 		cin>>a>>b;
 		neighbour_routing_table[a][b]=neighbour_routing_table[b][a]=1;
 
 
 	}while(a!=-1 && b!=-1);
 
-	neighbour_routing_table[][]={
-		{0,1,0,0,0,0,0,0,0},
-		{1,0,1,0,0,0,0,1,0},
-		{0,1,0,1,0,1,0,1,1},
-		{0,0,1,0,1,0,0,1,0},
-		{0,0,0,1,0,0,0,0,0},
-		{0,0,1,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0,0},
-		{0,1,1,1,0,0,0,0,1},
-		{0,0,1,0,0,0,0,0,0}
-	}
+
 	for(int i=0;i<9;i++)
 	{
 		cout<<endl;
@@ -70,6 +63,41 @@ void create_routing_table()
 			cout<<neighbour_routing_table[i][j]<<"\t";
 
 	}
+}
+
+void display_attributes(int k)
+{
+	cout<<"\n ID: "<<node[k].ip_val<<" buffer_remain ::"<<node[k].buffer_remain<<" Data:: "<<node[k].data<<" Energy :: "<<node[k].energy;
+}
+
+void congestion_control(int k, vector<int> route)
+{
+
+	int z=-1;
+	for(int i=0;i<route.size();i++)
+
+	{
+		if(route[i]==k)
+			z=i;
+	}	
+	int pre=node[route[z-1]].ip_val;
+	int nxt=node[route[z+1]].ip_val;
+	for(int i=0;i<9;i++)
+	{
+		if(neighbour_routing_table[k][i]==1)
+		{
+			if(i!=pre && i!=nxt)
+			{
+				cout<<"\n-----Getting data of buffer space and energy level-----\n";
+				if(node[i].buffer_remain>(0.25*node[k].buffer) && node[i].energy>(0.5*energy_node))
+				{
+					usleep(1000000);
+					cout<<"\n -------REROUTING-------\n";
+					route[z]=node[i].ip_val;
+				}
+			}
+		}
+	}	
 }
 int main()
 {
@@ -81,6 +109,7 @@ int main()
 	src2=5;
 	dest1=4;
 	dest2=8;
+	usleep(500000);
 	for(int i=0;i<n;i++)
 	{
 		cout<<"\nEnter souce and destination::";
@@ -104,38 +133,136 @@ int main()
 	//vector<int>::iterator i;
 	//updating predecesor and successor
 
-	for(i=0;i<route1.size();i++)
+	for(int i=0;i<route1.size();i++)
 	{
-		int k=*i;
+		
 		if(i==route1.size()-1)
-			n[k]->next=-1;
+			node[route1[i]].next=-1;
 		else
-			n[k]->next=route1[i+1];
+			node[route1[i]].next=route1[i+1];
 	}
+	usleep(500000);
+	
 
 	//updating predecessor and successor
-	for(i=0;i<route2.size();i++)
+	for(int i=0;i<route2.size();i++)
 	{
-		int k=*i;
+		
 		if(i==route2.size()-1)
-			n[k]->next=-1;
+			node[route2[i]].next=-1;
 		else
-			n[k]->next=route2[i+1];
+			node[route2[i]].next=route2[i+1];
 	}
 	
 	int m;
 	m=10;
+	usleep(500000);
 	cout<<"Enter the number of nodes:: "<<m;
 	
 	create_nodes(m);
 	create_routing_table();
+	usleep(500000);
+	cout<<"\nGenerating traffic ";
 
-	for(int i=0;i<60;i++)
+
+	for(int i=0;i<20;i++)
 	{
-		get_instant();
-		for(int i=end;i>=0;i--)
+		if(i>=1)
 		{
-			
+			usleep(500000);
+			if(i==1)cout<<"\n\n Starting traffic by src1 ::\n";
+			int k=route1[0];
+			node[k].data=750;
 		}
+		//start injecting packets to source nodes after 8 seconds
+		if(i>=8)
+		{
+			usleep(500000);
+			if(i==8)cout<<"\n\n Starting traffic by src2 ::\n"	;
+			int k=route2[0];
+			node[k].data=750;
+		}
+		if(i>1)
+		for(int i=route1.size()-1;i>0;i--)
+		{
+
+			int k=route1[i];
+
+			if(k==route1.size()-1)
+				node[k].data=0;
+		
+			node[k].data+=node[route1[i-1]].data;
+
+			node[route1[i-1]].data=0;
+			//if node has data greater than bandwidth-buffer gets filled
+			if(node[k].data>link_bw)
+			{
+				node[k].buffer_remain+=node[k].data-link_bw;
+			}
+			//if buffer exist
+			else if(node[k].buffer_remain>0)
+			{
+				if(node[k].data+node[k].buffer_remain<link_bw)
+					node[k].data+=node[k].buffer_remain;
+				else
+					node[k].data=link_bw,node[k].buffer_remain-=(link_bw-node[k].data);
+			}
+
+			//calculate buffer space and initiate congestion control function
+			if(node[k].buffer_remain>(node[k].buffer*0.75) && node[k].buffer_remain<node[k].buffer)
+			{
+				cout<<"\n\n -----CONGESTION AVOIDANCE-------\n";
+				congestion_control(k,route1);
+			}
+			else if(node[k].buffer_remain>node[k].buffer)
+			{
+				cout<<"\n------PACKET DROP------\n";
+				node[k].buffer_remain=node[k].buffer;
+			}
+
+			
+			display_attributes(k);
+
+		}	
+		display_attributes(0);
+		if(i>8)
+		{
+			for(int i=route2.size()-1;i>0;i--)
+		{
+
+			int k=route2[i];
+			if(k==route2.size()-1)
+				node[k].data=0;
+			node[k].data+=node[route2[i-1]].data;
+			node[route2[i-1]].data=0;
+			//if node has data greater than bandwidth-buffer gets filled
+			if(node[k].data>link_bw)
+			{
+				node[k].buffer_remain+=node[k].data-link_bw;
+			}
+			//if buffer exist
+			else if(node[k].buffer_remain>0)
+			{
+				if(node[k].data+node[k].buffer_remain<link_bw)
+					node[k].data+=node[k].buffer_remain;
+				else
+					node[k].data=link_bw,node[k].buffer_remain-=(link_bw-node[k].data);
+			}
+
+			//calculate buffer space and initiate congestion control function
+			if(node[k].buffer_remain>(node[k].buffer*0.75))
+			{
+				cout<<"\n\n -----CONGESTION AVOIDANCE-------\n";
+				congestion_control(k,route1);
+			}
+			
+			display_attributes(k);
+
+		}	
+		display_attributes(5);
+		}
+
+	
 	}
+	return 0;
 }
