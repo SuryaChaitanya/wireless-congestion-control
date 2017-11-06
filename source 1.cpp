@@ -25,9 +25,9 @@ struct node
 	int buffer;
 	int reduced_rate;			//msg from intermediate node to reduce the rate of flow to control congestion when rerouting is not possible
 	//int token[5];				//src, dest, sending, receiving, buffer capacity
-	struct node *next, *prev;
 	
-};
+	
+}n[10];
 	
 
 /*
