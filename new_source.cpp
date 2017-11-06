@@ -190,9 +190,13 @@ int main()
 
 			if(k==route1.size()-1)
 				node[k].data=0;
-		
-			node[k].data+=node[route1[i-1]].data;
 
+			/* Since if I get the data from the previous node, node 8 is getting congested.
+				To prevent it, i am adding the data rate directly to every node isntead of f
+				forwarding data to from the previous node to the present node */
+
+			//node[k].data+=node[route1[i-1]].data;
+			node[k].data+=750;
 			node[route1[i-1]].data=0;
 			//if node has data greater than bandwidth-buffer gets filled
 			if(node[k].data>link_bw)
