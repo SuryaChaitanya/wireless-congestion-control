@@ -15,9 +15,6 @@ int neighbour_routing_table[N][N];
 float energy_table[N];
 int buffer_table[N];
 
-int data1=750;
-int data2=750;
-
 struct Node
 {
 	int ip_val;					//id of the router
@@ -102,6 +99,8 @@ void congestion_control(int k, vector<int> route)
 		}
 	}	
 }
+
+void some_function(vector<int>);
 int main()
 {
 	int n;
@@ -164,8 +163,6 @@ int main()
 	
 	create_nodes(m);
 	create_routing_table();
-
-
 	usleep(500000);
 	cout<<"\nGenerating traffic ";
 
@@ -175,8 +172,7 @@ int main()
 		if(i>=1)
 		{
 			usleep(500000);
-			if(i==1)
-				cout<<"\n\n Starting traffic by src1 ::\n";
+			if(i==1)cout<<"\n\n Starting traffic by src1 ::\n";
 			int k=route1[0];
 			node[k].data=750;
 			display_attributes(k);
@@ -193,12 +189,29 @@ int main()
 
 
 		if(i>1)
-		for(int i=route1.size()-1;i>0;i--)
+			some_function(route1);
+
+			
+		//display_attributes(0);
+		if(i>8)
 		{
+			some_function(route2);	
+		
+		}
 
-			int k=route1[i];
+	
+	}
+	return 0;
+}
 
-			if(i==route1.size()-1)
+void some_function(vector<int> route1)
+{
+	for(int j=route1.size()-1;j>0;j--)
+	{
+
+			int k=route1[j];
+
+			if(j==route1.size()-1)
 				node[k].data=0;
 
 			/* Since if I get the data from the previous node, node 8 is getting congested.
@@ -209,7 +222,7 @@ int main()
 			
 			node[k].data+=750;
 
-			node[route1[i-1]].data-=750;
+			node[route1[j-1]].data-=750;
 			//if node has data greater than bandwidth-buffer gets filled
 			if(node[k].data>link_bw)
 			{
@@ -230,7 +243,7 @@ int main()
 			//calculate buffer space and initiate congestion control function
 			
 
-			if(node[k].buffer_remain>=(node[k].buffer*0.70) && node[k].buffer_remain<=node[k].buffer)
+			if(node[k].buffer_remain>(node[k].buffer*0.75) && node[k].buffer_remain<node[k].buffer)
 			{
 				cout<<"\n\n -----CONGESTION AVOIDANCE-------\n";
 				congestion_control(k,route1);
@@ -239,62 +252,6 @@ int main()
 			{
 				cout<<"\n------PACKET DROP------\n";
 				node[k].buffer_remain=node[k].buffer;
-				//reduce_data_rate(route1);
 			}
-	display_attributes(k);
-		}	
-		//display_attributes(0);
-		if(i>8)
-		{
-			for(int i=route2.size()-1;i>0;i--)
-			{
-
-				int k=route2[i];
-				if(i==route2.size()-1)
-					node[k].data=0;
-				
-
-				/* Since if I get the data from the previous node, node 8 is getting congested.
-					To prevent it, i am adding the data rate directly to every node isntead of f
-					forwarding data to from the previous node to the present node */
-
-				//node[k].data+=node[route2[i-1]].data;
-				node[k].data+=750;
-				node[route2[i-1]].data-=750;
-				//if node has data greater than bandwidth-buffer gets filled
-				if(node[k].data>link_bw)
-				{
-					node[k].buffer_remain+=node[k].data-link_bw;
-				}
-				//if buffer exist
-				else if(node[k].buffer_remain>0)
-				{
-					if(node[k].data+node[k].buffer_remain<link_bw)
-						node[k].data+=node[k].buffer_remain;
-					else
-						node[k].data=link_bw,node[k].buffer_remain-=(link_bw-node[k].data);
-				}
-
-				//calculate buffer space and initiate congestion control function
-
-				if(node[k].buffer_remain>(node[k].buffer*0.75) && node[k].buffer_remain<node[k].buffer)
-				{
-					cout<<"\n\n -----CONGESTION AVOIDANCE-------\n";
-					congestion_control(k,route1);
-				}
-				else if(node[k].buffer_remain>node[k].buffer)
-				{
-					cout<<"\n------PACKET DROP------\n";
-					node[k].buffer_remain=node[k].buffer;
-				}
-				
-				display_attributes(k);
-
-			}	
-		
-		}
-
-	
 	}
-	return 0;
 }
